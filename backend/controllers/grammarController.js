@@ -1,10 +1,13 @@
 const axios = require('axios');
+require('dotenv').config();
+
+console.log('API Key:',process.env.COHERE_API_KEY);
 
 const checkGrammar = async (req, res) => {
     const { text } = req.body;
     try {
       const response = await axios.post('https://api.cohere.ai/v1/generate', {
-        prompt: `Please correct this phase as a native speaker in japanese. Just reply the corrected japananese no need to explain: ${text}`,
+        prompt: `Please correct the following Japanese text to make it sound more natural. Only provide the corrected Japanese text, without any additional explanation:${text}`,
       }, {
         headers: {
           Authorization: `Bearer ${process.env.COHERE_API_KEY}`
@@ -14,7 +17,9 @@ const checkGrammar = async (req, res) => {
       console.log(response.data); // Kiểm tra cấu trúc phản hồi từ Cohere
   
       if (response.data.generations && response.data.generations[0]) {
-        const correctedText = response.data.generations[0].text;
+        const fullText = response.data.generations[0].text;
+        const correctedText = fullText.split('\n\n')[0]; // Lấy phần trước \n\n
+
         res.json({ correctedText });
       } else {
         res.status(500).json({ error: 'API response format unexpected' });
